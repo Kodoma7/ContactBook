@@ -9,6 +9,7 @@ import main.com.kodoma.datasource.User;
 import main.com.kodoma.exceptions.WrongPhoneFormat;
 import main.com.kodoma.util.Messages;
 
+import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -18,13 +19,19 @@ import java.util.Observer;
 public class View implements Observer {
     private Controller controller;
 
-    public void select() {
+    public void selectParser() {
         try {
             ConsoleHelper.writeMessage("С какой реализацией xml-парсера работаем: DATA, DOM, SAX, MAP");
             String result = ConsoleHelper.readString();
             FactoryDAO.setDAO(result);
             ConsoleHelper.writeMessage("выбран " + result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void select() {
+        try {
         while (true) {
             ConsoleHelper.initMenu();
             update("Выберите команду:");
@@ -32,7 +39,6 @@ public class View implements Observer {
                 int command = ConsoleHelper.readInt();
                 if (command == 0) break;
 
-                    //изменить
                 switch (Commands.values()[command - 1]) {
                     case ADDUSER: {
                         update(Messages.CREATEUSER);

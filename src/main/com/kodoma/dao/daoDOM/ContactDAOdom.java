@@ -12,14 +12,12 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +41,7 @@ public class ContactDAOdom implements DAO<User> {
     }
 
     private void checkFileExists() throws IOException {
-        File file = new File("ContactBook.xml");
+        File file = new File("contactbook.xml");
         if (!file.exists())
             file.createNewFile();
     }
@@ -72,7 +70,7 @@ public class ContactDAOdom implements DAO<User> {
     private List<Long> getListID(Document document) throws XPathExpressionException {
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook/User/ID");
+        XPathExpression expr = xpath.compile("contactbook/user/id");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
@@ -88,51 +86,45 @@ public class ContactDAOdom implements DAO<User> {
 
     private Document getDocument(String name) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        // Создается дерево DOM документа из файла
         Document document = documentBuilder.parse(name);
         return document;
     }
 
-    private static void writeDocument(Document document) throws TransformerFactoryConfigurationError {
-        try {
-            Transformer tr = TransformerFactory.newInstance().newTransformer();
-            DOMSource source = new DOMSource(document);
-            FileOutputStream fos = new FileOutputStream("ContactBook.xml");
-            StreamResult result = new StreamResult(fos);
-            tr.transform(source, result);
-        } catch (TransformerException | IOException e) {
-            System.out.println("exception");
-        }
+    private void writeDocument(Document document) throws TransformerFactoryConfigurationError, TransformerException, FileNotFoundException {
+        Transformer tr = TransformerFactory.newInstance().newTransformer();
+        DOMSource source = new DOMSource(document);
+        FileOutputStream fos = new FileOutputStream("contactbook.xml");
+        StreamResult result = new StreamResult(fos);
+        tr.transform(source, result);
     }
 
     @Override
     public void add(User user) throws Exception {
-        System.out.println("работает ContactDAOdom");
         checkFileExists();
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
 
         List<Long> idList = getListID(document);
 
         long avalableID = getAvalableId(0, idList);
 
         Node root = document.getDocumentElement();
-        Element book = document.createElement("User");
+        Element book = document.createElement("user");
 
-        Element title = document.createElement("ID");
+        Element title = document.createElement("id");
         title.setTextContent(avalableID + "");
-        Element author = document.createElement("FirstName");
+        Element author = document.createElement("first_name");
         author.setTextContent(user.getFname());
 
-        Element date = document.createElement("LastName");
+        Element date = document.createElement("last_name");
         date.setTextContent(user.getLname());
 
-        Element isbn = document.createElement("Address");
+        Element isbn = document.createElement("address");
         isbn.setTextContent(user.getAddress());
 
-        Element publisher = document.createElement("PhoneNumber");
+        Element publisher = document.createElement("phone_number");
         publisher.setTextContent(user.getPhoneNumber() + "");
 
-        Element cost = document.createElement("Group");
+        Element cost = document.createElement("group");
         cost.setTextContent(user.getGroup());
 
         book.appendChild(title);
@@ -149,22 +141,21 @@ public class ContactDAOdom implements DAO<User> {
 
     @Override
     public void edit(User user, String str) throws Exception {
-        System.out.println("работает ContactDAOdom - edit");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<Long> listID = getListID(document);
 
         if (!listID.contains(user.getId())) throw new WrongIDFormat();
 
-        NodeList languages = document.getElementsByTagName("User");
+        NodeList languages = document.getElementsByTagName("user");
         Element lang;
         // проходим по каждому элементу User
         for(int i=0; i<languages.getLength();i++) {
             lang = (Element) languages.item(i);
-            Node nameID = lang.getElementsByTagName("ID").item(0).getFirstChild();
+            Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
             long id = Long.parseLong(nameID.getTextContent());
 
             if (id == user.getId()) {
-                Node firstName = lang.getElementsByTagName("FirstName").item(0).getFirstChild();
+                Node firstName = lang.getElementsByTagName("first_name").item(0).getFirstChild();
                 firstName.setNodeValue(user.getFname());
             }
         }
@@ -173,22 +164,21 @@ public class ContactDAOdom implements DAO<User> {
 
     @Override
     public void remove(User user) throws Exception {
-        System.out.println("работает ContactDAOdom - remove");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
 
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook");
+        XPathExpression expr = xpath.compile("contactbook");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
         for (int i = 0; i < nodes.getLength(); i++) {
             Node userNode = nodes.item(i);
-            NodeList list = nodes.item(i).getChildNodes(); //тэги
+            NodeList list = nodes.item(i).getChildNodes();
             Node n = list.item(1);
 
             Element element = (Element)n;
-            Node ID = element.getElementsByTagName("ID").item(0);
+            Node ID = element.getElementsByTagName("id").item(0);
 
             System.out.println(ID.getNodeName());
             System.out.println(ID.getTextContent());
@@ -203,19 +193,19 @@ public class ContactDAOdom implements DAO<User> {
 
     @Override
     public void show(User user) throws Exception {
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
 
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook/User");
+        XPathExpression expr = xpath.compile("contactbook/user");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
         for (int i = 0; i < nodes.getLength(); i++) {
-            Node userNode = nodes.item(i); //Contact
-            NodeList userList = userNode.getChildNodes(); //Users
+            Node userNode = nodes.item(i);
+            NodeList userList = userNode.getChildNodes();
 
-            Node tagNode = userList.item(1); //Tag
+            Node tagNode = userList.item(1);
             long id = Long.parseLong(tagNode.getTextContent());
 
             if (id == user.getId()) {
@@ -225,31 +215,25 @@ public class ContactDAOdom implements DAO<User> {
     }
 
     @Override
-    public void showAll() {
-        try {
-            Document document = getDocument("ContactBook.xml");
-            NodeList users = document.getElementsByTagName("User");
+    public void showAll() throws IOException, SAXException, ParserConfigurationException {
+        Document document = getDocument("contactbook.xml");
+        NodeList users = document.getElementsByTagName("user");
 
-            for (int i = 0; i < users.getLength(); i++) {
-                System.out.println(users.item(i).getTextContent());
-            }
-
-        } catch (ParserConfigurationException | IOException | SAXException e) {
-            e.printStackTrace();
+        for (int i = 0; i < users.getLength(); i++) {
+            System.out.println(users.item(i).getTextContent());
         }
     }
 
     @Override
     public void label(long id, String nameOfGroup) throws Exception {
-        System.out.println("работает ContactDAOdom - edit");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<Long> listID = getListID(document);
 
         if (!listID.contains(id)) throw new WrongIDFormat();
 
-        NodeList languages = document.getElementsByTagName("User");
+        NodeList languages = document.getElementsByTagName("user");
         Element lang;
-        // проходим по каждому элементу Contact
+
         for(int i=0; i<languages.getLength();i++) {
             lang = (Element) languages.item(i);
             Node nameID = lang.getElementsByTagName("ID").item(0).getFirstChild();
@@ -265,23 +249,21 @@ public class ContactDAOdom implements DAO<User> {
 
     @Override
     public void deleteLabel(long id) throws Exception {
-        System.out.println("работает ContactDAOdom - deleteLabel");
-        System.out.println("работает ContactDAOdom - edit");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<Long> listID = getListID(document);
 
         if (!listID.contains(id)) throw new WrongIDFormat();
 
-        NodeList languages = document.getElementsByTagName("ContactBook");
+        NodeList languages = document.getElementsByTagName("contactbook");
         Element lang;
         // проходим по каждому элементу Contact
         for(int i=0; i<languages.getLength();i++) {
             lang = (Element) languages.item(i);
-            Node nameID = lang.getElementsByTagName("ID").item(0).getFirstChild();
+            Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
             long idL = Long.parseLong(nameID.getTextContent());
 
             if (idL == id) {
-                Node group = lang.getElementsByTagName("Group").item(0).getFirstChild();
+                Node group = lang.getElementsByTagName("group").item(0).getFirstChild();
                 group.setNodeValue(" ");
             }
         }

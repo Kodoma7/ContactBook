@@ -43,7 +43,7 @@ public class ContactDAOsax implements DAO<User> {
     }
 
     private void checkFileExists() throws IOException {
-        File file = new File("ContactBook.xml");
+        File file = new File("contactbook.xml");
         if (!file.exists())
             file.createNewFile();
     }
@@ -72,7 +72,7 @@ public class ContactDAOsax implements DAO<User> {
     private List<Long> getListID(Document document) throws XPathExpressionException, BoundException {
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook/User/ID");
+        XPathExpression expr = xpath.compile("contactbook/user/id");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
@@ -88,95 +88,44 @@ public class ContactDAOsax implements DAO<User> {
 
     private Document getDocument(String name) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        // Создается дерево DOM документа из файла
         Document document = documentBuilder.parse(name);
         return document;
     }
 
-    private static void writeDocument(Document document) throws TransformerFactoryConfigurationError {
-        try {
-            Transformer tr = TransformerFactory.newInstance().newTransformer();
-            DOMSource source = new DOMSource(document);
-            FileOutputStream fos = new FileOutputStream("ContactBook.xml");
-            StreamResult result = new StreamResult(fos);
-            tr.transform(source, result);
-        } catch (TransformerException | IOException e) {
-            System.out.println("exception");
-        }
+    private void writeDocument(Document document) throws TransformerFactoryConfigurationError, TransformerException, FileNotFoundException {
+        Transformer tr = TransformerFactory.newInstance().newTransformer();
+        DOMSource source = new DOMSource(document);
+        FileOutputStream fos = new FileOutputStream("contactbook.xml");
+        StreamResult result = new StreamResult(fos);
+        tr.transform(source, result);
     }
 
     @Override
     public void add(User user) throws Exception {
-        System.out.println("работает ContactDAOsax - add");
-        /*checkFileExists();
-        Document document = getDocument("Employees.xml");
-        List<Long> listID = getListID(document);
-        long avalableID = getAvalableId(0, listID);
-
-        XMLOutputFactory output = XMLOutputFactory.newInstance();
-        XMLStreamWriter writer = output.createXMLStreamWriter(new FileWriter("Employees.xml", true));
-
-        writer.writeStartElement("Employee");
-
-        // Заполняем все тэги для книги
-        // ID
-        writer.writeStartElement("ID");
-        writer.writeCharacters(avalableID + "");
-        writer.writeEndElement();
-        // FirstName
-        writer.writeStartElement("FirstName");
-        writer.writeCharacters(user.getFname());
-        writer.writeEndElement();
-        // LastName
-        writer.writeStartElement("LastName");
-        writer.writeCharacters(user.getLname());
-        writer.writeEndElement();
-        // Address
-        writer.writeStartElement("Address");
-        writer.writeCharacters(user.getAddress());
-        writer.writeEndElement();
-        // PhoneNumber
-        writer.writeStartElement("PhoneNumber");
-        writer.writeCharacters(user.getPhoneNumber() + "");
-        writer.writeEndElement();
-        // Group
-        writer.writeStartElement("Group");
-        writer.writeCharacters(user.getGroup());
-        writer.writeEndElement();
-
-        // Закрываем корневой элемент
-        writer.writeEndElement();
-
-        // Закрываем XML-документ
-        writer.writeEndDocument();
-        writer.flush();*/
         checkFileExists();
-        Document document = getDocument("ContactBook.xml");
-
-        System.out.println("Поиск id...");
-
+        Document document = getDocument("contactbook.xml");
         List<Long> idList = getListID(document);
 
         long avalableID = getAvalableId(0, idList);
 
         Node root = document.getDocumentElement();
-        Element book = document.createElement("User");
+        Element book = document.createElement("user");
 
-        Element title = document.createElement("ID");
+        Element title = document.createElement("id");
         title.setTextContent(avalableID + "");
-        Element author = document.createElement("FirstName");
+        Element author = document.createElement("first_name");
         author.setTextContent(user.getFname());
 
-        Element date = document.createElement("LastName");
+        Element date = document.createElement("last_name");
         date.setTextContent(user.getLname());
 
-        Element isbn = document.createElement("Address");
+        Element isbn = document.createElement("address");
         isbn.setTextContent(user.getAddress());
 
-        Element publisher = document.createElement("PhoneNumber");
+        Element publisher = document.createElement("phone_number");
         publisher.setTextContent(user.getPhoneNumber() + "");
 
-        Element cost = document.createElement("Group");
+        Element cost = document.createElement("group");
         cost.setTextContent(user.getGroup());
 
         book.appendChild(title);
@@ -193,22 +142,21 @@ public class ContactDAOsax implements DAO<User> {
 
     @Override
     public void edit(User user, String str) throws Exception {
-        System.out.println("работает ContactDAOsax - edit");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<Long> listID = getListID(document);
 
         if (!listID.contains(user.getId())) throw new WrongIDFormat();
 
-        NodeList languages = document.getElementsByTagName("User");
+        NodeList languages = document.getElementsByTagName("user");
         Element lang;
-        // проходим по каждому элементу Employee
+
         for (int i = 0; i < languages.getLength(); i++) {
             lang = (Element) languages.item(i);
-            Node nameID = lang.getElementsByTagName("ID").item(0).getFirstChild();
+            Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
             long id = Long.parseLong(nameID.getTextContent());
 
             if (id == user.getId()) {
-                Node firstName = lang.getElementsByTagName("FirstName").item(0).getFirstChild();
+                Node firstName = lang.getElementsByTagName("first_name").item(0).getFirstChild();
                 firstName.setNodeValue(user.getFname());
             }
         }
@@ -217,25 +165,24 @@ public class ContactDAOsax implements DAO<User> {
 
     @Override
     public void remove(User user) throws Exception {
-        System.out.println("работает ContactDAOsax - remove");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<Long> listID = getListID(document);
 
         if (!listID.contains(user.getId())) throw new WrongIDFormat();
 
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook");
+        XPathExpression expr = xpath.compile("contactbook");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
         for (int i = 0; i < nodes.getLength(); i++) {
             Node userNode = nodes.item(i);
-            NodeList list = nodes.item(i).getChildNodes(); //тэги
+            NodeList list = nodes.item(i).getChildNodes();
             Node n = list.item(1);
 
             Element element = (Element) n;
-            Node ID = element.getElementsByTagName("ID").item(0);
+            Node ID = element.getElementsByTagName("id").item(0);
 
             System.out.println(ID.getNodeName());
             System.out.println(ID.getTextContent());
@@ -252,12 +199,12 @@ public class ContactDAOsax implements DAO<User> {
     public void show(User user) throws Exception {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         SAXParser saxParser = factory.newSAXParser();
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<Long> listID = getListID(document);
 
         if (!listID.contains(user.getId())) throw new WrongIDFormat();
 
-        String fileName = "ContactBook.xml";
+        String fileName = "contactbook.xml";
         StringBuilder sb = new StringBuilder();
 
         DefaultHandler handler = new DefaultHandler() {
@@ -265,23 +212,20 @@ public class ContactDAOsax implements DAO<User> {
             boolean record = false;
             int i = 0;
 
-            // Метод вызывается когда SAXParser "натыкается" на начало тэга
             @Override
             public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-                // Если тэг имеет имя ID, то мы этот момент отмечаем - начался тэг ID
-                if (qName.equalsIgnoreCase("ID")) {
+                if (qName.equalsIgnoreCase("id")) {
                     idFound = true;
                 }
             }
 
-            // Метод вызывается когда SAXParser считывает текст между тэгами
             @Override
             public void characters(char ch[], int start, int length) throws SAXException {
                 if (record && i < 9) {
                     sb.append(new String(ch, start, length));
                     i++;
                 }
-                // Если перед этим мы отметили, что имя тэга ID - значит нам надо текст использовать.
+
                 if (idFound) {
                     long id = Long.parseLong(new String(ch, start, length));
                     if (id == user.getId()) {
@@ -292,7 +236,6 @@ public class ContactDAOsax implements DAO<User> {
             }
         };
 
-        // Стартуем разбор методом parse, которому передаем наследника от DefaultHandler, который будет вызываться в нужные моменты
         saxParser.parse(fileName, handler);
         System.out.println(sb.toString());
     }
@@ -302,7 +245,7 @@ public class ContactDAOsax implements DAO<User> {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         SAXParser saxParser = factory.newSAXParser();
 
-        String fileName = "ContactBook.xml";
+        String fileName = "contactbook.xml";
 
         DefaultHandler handler = new DefaultHandler() {
             boolean isID = false;
@@ -312,42 +255,41 @@ public class ContactDAOsax implements DAO<User> {
             boolean isPhoneNumber = false;
             boolean isGroup = false;
 
-            // Метод вызывается когда SAXParser "натыкается" на начало тэга
             @Override
             public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-                if (qName.equalsIgnoreCase("ID")) isID = true;
-                else if (qName.equalsIgnoreCase("FirstName")) isFirstName = true;
-                else if (qName.equalsIgnoreCase("LastName")) isLastName = true;
-                else if (qName.equalsIgnoreCase("Address")) isAddress = true;
-                else if (qName.equalsIgnoreCase("PhoneNumber")) isPhoneNumber = true;
-                else if (qName.equalsIgnoreCase("Group")) isGroup = true;
+                if (qName.equalsIgnoreCase("id")) isID = true;
+                else if (qName.equalsIgnoreCase("first_name")) isFirstName = true;
+                else if (qName.equalsIgnoreCase("last_name")) isLastName = true;
+                else if (qName.equalsIgnoreCase("address")) isAddress = true;
+                else if (qName.equalsIgnoreCase("phone_number")) isPhoneNumber = true;
+                else if (qName.equalsIgnoreCase("group")) isGroup = true;
             }
 
             @Override
             public void characters(char[] ch, int start, int length) throws SAXException {
                 String result = new String(ch, start, length);
                 if (isID) {
-                    System.out.println("ID: " + result);
+                    System.out.println("id: " + result);
                     isID = false;
                 }
                 else if (isFirstName) {
-                    System.out.println("FirstName: " + result);
+                    System.out.println("first_name: " + result);
                     isFirstName = false;
                 }
                 else if (isLastName) {
-                    System.out.println("LastName: " + result);
+                    System.out.println("last_name: " + result);
                     isLastName = false;
                 }
                 else if (isAddress) {
-                    System.out.println("Address: " + result);
+                    System.out.println("address: " + result);
                     isAddress = false;
                 }
                 else if (isPhoneNumber) {
-                    System.out.println("PhoneNumber: " + result);
+                    System.out.println("phone_number: " + result);
                     isPhoneNumber = false;
                 }
                 else if (isGroup) {
-                    System.out.println("Group: " + result + "\n");
+                    System.out.println("group: " + result + "\n");
                     isGroup = false;
                 }
             }
@@ -357,22 +299,21 @@ public class ContactDAOsax implements DAO<User> {
 
     @Override
     public void label(long id, String nameOfGroup) throws Exception {
-        System.out.println("работает ContactDAOsax - edit");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<Long> listID = getListID(document);
 
         if (!listID.contains(id)) throw new WrongIDFormat();
 
-        NodeList languages = document.getElementsByTagName("User");
+        NodeList languages = document.getElementsByTagName("user");
         Element lang;
-        // проходим по каждому элементу Employee
+
         for (int i = 0; i < languages.getLength(); i++) {
             lang = (Element) languages.item(i);
-            Node nameID = lang.getElementsByTagName("ID").item(0).getFirstChild();
+            Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
             long idL = Long.parseLong(nameID.getTextContent());
 
             if (idL == id) {
-                Node group = lang.getElementsByTagName("Group").item(0).getFirstChild();
+                Node group = lang.getElementsByTagName("group").item(0).getFirstChild();
                 group.setNodeValue(nameOfGroup);
             }
         }
@@ -381,22 +322,21 @@ public class ContactDAOsax implements DAO<User> {
 
     @Override
     public void deleteLabel(long id) throws Exception {
-        System.out.println("работает ContactDAOsax - deleteLabel");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<Long> listID = getListID(document);
 
         if (!listID.contains(id)) throw new WrongIDFormat();
 
-        NodeList languages = document.getElementsByTagName("User");
+        NodeList languages = document.getElementsByTagName("user");
         Element lang;
-        // проходим по каждому элементу Employee
+
         for (int i = 0; i < languages.getLength(); i++) {
             lang = (Element) languages.item(i);
-            Node nameID = lang.getElementsByTagName("ID").item(0).getFirstChild();
+            Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
             long idL = Long.parseLong(nameID.getTextContent());
 
             if (idL == id) {
-                Node group = lang.getElementsByTagName("Group").item(0).getFirstChild();
+                Node group = lang.getElementsByTagName("group").item(0).getFirstChild();
                 group.setNodeValue(" ");
             }
         }

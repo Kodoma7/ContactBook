@@ -25,6 +25,7 @@ public class Group {
      * @param user
      */
     public void addAtGroup(User user) {
+        if (user == null) return;
         user.setGroup(nameGroup);
         list.add(user);
     }

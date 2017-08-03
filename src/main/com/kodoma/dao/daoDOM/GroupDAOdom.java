@@ -22,6 +22,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public class GroupDAOdom implements DAO<Group> {
     }
 
     private void checkFileExists() throws IOException {
-        File file = new File("ContactBook.xml");
+        File file = new File("contactbook.xml");
         if (!file.exists())
             file.createNewFile();
     }
@@ -53,7 +54,7 @@ public class GroupDAOdom implements DAO<Group> {
     private List<String> getGroupsNames(Document document) throws XPathExpressionException {
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook/User/Group");
+        XPathExpression expr = xpath.compile("contactbook/user/group");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
@@ -68,21 +69,16 @@ public class GroupDAOdom implements DAO<Group> {
 
     private Document getDocument(String name) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        // Создается дерево DOM документа из файла
         Document document = documentBuilder.parse(name);
         return document;
     }
 
-    private static void writeDocument(Document document) throws TransformerFactoryConfigurationError {
-        try {
-            Transformer tr = TransformerFactory.newInstance().newTransformer();
-            DOMSource source = new DOMSource(document);
-            FileOutputStream fos = new FileOutputStream("ContactBook.xml");
-            StreamResult result = new StreamResult(fos);
-            tr.transform(source, result);
-        } catch (TransformerException | IOException e) {
-            System.out.println("exception");
-        }
+    private void writeDocument(Document document) throws TransformerFactoryConfigurationError, TransformerException, FileNotFoundException {
+        Transformer tr = TransformerFactory.newInstance().newTransformer();
+        DOMSource source = new DOMSource(document);
+        FileOutputStream fos = new FileOutputStream("contactbook.xml");
+        StreamResult result = new StreamResult(fos);
+        tr.transform(source, result);
     }
 
     @Override
@@ -92,17 +88,16 @@ public class GroupDAOdom implements DAO<Group> {
 
     @Override
     public void edit(Group group, String newName) throws Exception {
-        System.out.println("работает GroupDAOdom - edit");
         checkFileExists();
 
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<String> names = getGroupsNames(document);
 
         if (!names.contains(group.getNameGroup())) throw new WrongGroupName();
 
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook/User/Group");
+        XPathExpression expr = xpath.compile("contactbook/user/group");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
@@ -117,23 +112,22 @@ public class GroupDAOdom implements DAO<Group> {
 
     @Override
     public void remove(Group group) throws Exception {
-        System.out.println("работает GroupDAOdom - remove");
         checkFileExists();
 
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<String> names = getGroupsNames(document);
 
         if (!names.contains(group.getNameGroup())) throw new WrongGroupName();
 
-        NodeList languages = document.getElementsByTagName("User");
+        NodeList languages = document.getElementsByTagName("user");
         Element lang;
 
         for(int i=0; i<languages.getLength();i++) {
             lang = (Element) languages.item(i);
-            Node nameGroup = lang.getElementsByTagName("Group").item(0).getFirstChild();
+            Node nameGroup = lang.getElementsByTagName("group").item(0).getFirstChild();
 
             if (nameGroup.getTextContent().equals(group.getNameGroup())) {
-                Node g = lang.getElementsByTagName("Group").item(0).getFirstChild();
+                Node g = lang.getElementsByTagName("group").item(0).getFirstChild();
                 g.setNodeValue(" ");
             }
         }
@@ -142,22 +136,21 @@ public class GroupDAOdom implements DAO<Group> {
 
     @Override
     public void show(Group group) throws Exception {
-        System.out.println("работает GroupDAOdom - show");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
 
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook/User");
+        XPathExpression expr = xpath.compile("contactbook/user");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
         for (int i = 0; i < nodes.getLength(); i++) {
-            Node userNode = nodes.item(i); //Contact
-            NodeList userList = userNode.getChildNodes(); //Users
+            Node userNode = nodes.item(i);
+            NodeList userList = userNode.getChildNodes();
 
             Element element = (Element)userList;
 
-            Node g = element.getElementsByTagName("Group").item(0).getFirstChild();
+            Node g = element.getElementsByTagName("group").item(0).getFirstChild();
 
             if (g.getTextContent().equals(group.getNameGroup()))
                 System.out.println("контакт: " + userNode.getTextContent());
@@ -166,26 +159,24 @@ public class GroupDAOdom implements DAO<Group> {
 
     @Override
     public void showAll() throws Exception {
-        System.out.println("работает GroupDAOdom - showAll");
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
 
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook/User");
+        XPathExpression expr = xpath.compile("contactbook/user");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
         for (int i = 0; i < nodes.getLength(); i++) {
-            Node userNode = nodes.item(i); //Contact
-            NodeList userList = userNode.getChildNodes(); //Users
+            Node userNode = nodes.item(i);
+            NodeList userList = userNode.getChildNodes();
 
             Element element = (Element)userList;
 
-            Node g = element.getElementsByTagName("Group").item(0).getFirstChild();
+            Node g = element.getElementsByTagName("group").item(0).getFirstChild();
 
             System.out.println("группа: " + g.getTextContent());
         }
-
     }
 
     @Override

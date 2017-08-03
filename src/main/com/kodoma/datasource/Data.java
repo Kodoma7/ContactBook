@@ -12,10 +12,10 @@ import java.util.Map;
 /**
  * Created by Кодома on 26.07.2017.
  */
-@JacksonXmlRootElement(localName = "ContactBook")
+@JacksonXmlRootElement(localName = "contactbook")
 public class Data {
     private long id = 0;
-    @JacksonXmlElementWrapper(localName = "User", useWrapping = false)
+    @JacksonXmlElementWrapper(localName = "user", useWrapping = false)
     private List<User> user = new ArrayList<>();
     private Map<Long, User> users = new HashMap<Long, User>();
     private List<Group> groups = new ArrayList<Group>();
@@ -59,12 +59,12 @@ public class Data {
         return result;
     }
 
-    public void setUsers(Map<Long, User> users) {
-        this.users = users;
+    public List<User> getUser() {
+        return user;
     }
 
-    public void setGroups(List<Group> groups) {
-        this.groups = groups;
+    public void setUser(List<User> user) {
+        this.user = user;
     }
 
     public Map<Long, User> getUsers() {
@@ -87,7 +87,7 @@ public class Data {
     public String toString() {
         return "Data{" +
                 "id=" + id +
-                ", users=" + users +
+                ", users=" + user +
                 '}';
     }
 }

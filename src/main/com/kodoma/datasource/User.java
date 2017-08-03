@@ -9,17 +9,17 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 
 public class User {
-    @JacksonXmlProperty(localName = "ID")
+    @JacksonXmlProperty(localName = "id")
     private long id;
-    @JacksonXmlProperty(localName = "FirstName")
+    @JacksonXmlProperty(localName = "first_name")
     private String fname;
-    @JacksonXmlProperty(localName = "LastName")
+    @JacksonXmlProperty(localName = "last_name")
     private String lname;
-    @JacksonXmlProperty(localName = "Address")
+    @JacksonXmlProperty(localName = "address")
     private String address;
-    @JacksonXmlProperty(localName = "PhoneNumber")
+    @JacksonXmlProperty(localName = "phone_number")
     private int phoneNumber;
-    @JacksonXmlProperty(localName = "Group")
+    @JacksonXmlProperty(localName = "group")
     private String group = " ";
 
     public User() {
