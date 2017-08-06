@@ -20,14 +20,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.Format;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
 import java.util.Observer;
 
 /**
  * Created by Кодома on 29.07.2017.
  */
-public class ContactDAOdom implements DAO<User> {
+public class ContactDAOdom extends Observable implements DAO<User> {
     public static ContactDAOdom instance;
 
     private ContactDAOdom() {
@@ -149,14 +151,23 @@ public class ContactDAOdom implements DAO<User> {
         NodeList languages = document.getElementsByTagName("user");
         Element lang;
         // проходим по каждому элементу User
-        for(int i=0; i<languages.getLength();i++) {
+        for(int i = 0; i < languages.getLength(); i++) {
             lang = (Element) languages.item(i);
             Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
             long id = Long.parseLong(nameID.getTextContent());
 
             if (id == user.getId()) {
                 Node firstName = lang.getElementsByTagName("first_name").item(0).getFirstChild();
+                Node lastName = lang.getElementsByTagName("last_name").item(0).getFirstChild();
+                Node address = lang.getElementsByTagName("address").item(0).getFirstChild();
+                Node phoneNumber = lang.getElementsByTagName("phone_number").item(0).getFirstChild();
+                Node group = lang.getElementsByTagName("group").item(0).getFirstChild();
+
                 firstName.setNodeValue(user.getFname());
+                lastName.setNodeValue(user.getLname());
+                address.setNodeValue(user.getAddress());
+                phoneNumber.setNodeValue(user.getPhoneNumber() + " ");
+                group.setNodeValue(user.getGroup());
             }
         }
         writeDocument(document);
@@ -166,27 +177,23 @@ public class ContactDAOdom implements DAO<User> {
     public void remove(User user) throws Exception {
         Document document = getDocument("contactbook.xml");
 
-        XPathFactory pathFactory = XPathFactory.newInstance();
-        XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("contactbook");
+        // Получаем корневой элемент
+        Node contactbookNode = document.getFirstChild();
+        NodeList users = contactbookNode.getChildNodes();
 
-        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+        for (int i = 0; i < users.getLength(); i++) {
+            Node nextNode = users.item(i);
 
-        for (int i = 0; i < nodes.getLength(); i++) {
-            Node userNode = nodes.item(i);
-            NodeList list = nodes.item(i).getChildNodes();
-            Node n = list.item(1);
+            if (nextNode.getNodeName().equals("user")) {
+                System.out.println(nextNode.getNodeName());
 
-            Element element = (Element)n;
-            Node ID = element.getElementsByTagName("id").item(0);
+                Element userElement = (Element) nextNode;
+                Node ID = userElement.getElementsByTagName("id").item(0);
+                long id = Long.parseLong(ID.getTextContent());
 
-            System.out.println(ID.getNodeName());
-            System.out.println(ID.getTextContent());
-
-            long id = Long.parseLong(ID.getTextContent());
-
-            if (id == user.getId())
-                userNode.removeChild(n);
+                if (id == user.getId())
+                    contactbookNode.removeChild(nextNode);
+            }
         }
         writeDocument(document);
     }
@@ -200,6 +207,7 @@ public class ContactDAOdom implements DAO<User> {
         XPathExpression expr = xpath.compile("contactbook/user");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+        Element element;
 
         for (int i = 0; i < nodes.getLength(); i++) {
             Node userNode = nodes.item(i);
@@ -209,7 +217,18 @@ public class ContactDAOdom implements DAO<User> {
             long id = Long.parseLong(tagNode.getTextContent());
 
             if (id == user.getId()) {
-                System.out.println(userNode.getTextContent());
+                element = (Element) userNode;
+                String ID = element.getElementsByTagName("id").item(0).getTextContent();
+                String firstName = element.getElementsByTagName("first_name").item(0).getTextContent();
+                String lastName = element.getElementsByTagName("last_name").item(0).getTextContent();
+                String address = element.getElementsByTagName("address").item(0).getTextContent();
+                String phoneNumber = element.getElementsByTagName("phone_number").item(0).getTextContent();
+                String group = element.getElementsByTagName("group").item(0).getTextContent();
+
+                setChanged();
+                String result = String.format("Group: %s [id: %s, name: %s %s, address: %s, phone number: %s]",
+                        group, ID, firstName, lastName, address, phoneNumber);
+                notifyObservers(result);
             }
         }
     }
@@ -219,8 +238,21 @@ public class ContactDAOdom implements DAO<User> {
         Document document = getDocument("contactbook.xml");
         NodeList users = document.getElementsByTagName("user");
 
+        Element element;
+
         for (int i = 0; i < users.getLength(); i++) {
-            System.out.println(users.item(i).getTextContent());
+            element = (Element) users.item(i);
+            String ID = element.getElementsByTagName("id").item(0).getTextContent();
+            String firstName = element.getElementsByTagName("first_name").item(0).getTextContent();
+            String lastName = element.getElementsByTagName("last_name").item(0).getTextContent();
+            String address = element.getElementsByTagName("address").item(0).getTextContent();
+            String phoneNumber = element.getElementsByTagName("phone_number").item(0).getTextContent();
+            String group = element.getElementsByTagName("group").item(0).getTextContent();
+
+            setChanged();
+            String result = String.format("Group: %s [id: %s, name: %s %s, address: %s, phone number: %s]",
+                    group, ID, firstName, lastName, address, phoneNumber);
+            notifyObservers(result);
         }
     }
 
@@ -234,13 +266,13 @@ public class ContactDAOdom implements DAO<User> {
         NodeList languages = document.getElementsByTagName("user");
         Element lang;
 
-        for(int i=0; i<languages.getLength();i++) {
+        for(int i = 0; i < languages.getLength(); i++) {
             lang = (Element) languages.item(i);
-            Node nameID = lang.getElementsByTagName("ID").item(0).getFirstChild();
+            Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
             long idL = Long.parseLong(nameID.getTextContent());
 
             if (idL == id) {
-                Node group = lang.getElementsByTagName("Group").item(0).getFirstChild();
+                Node group = lang.getElementsByTagName("group").item(0).getFirstChild();
                 group.setNodeValue(nameOfGroup);
             }
         }
@@ -250,21 +282,24 @@ public class ContactDAOdom implements DAO<User> {
     @Override
     public void deleteLabel(long id) throws Exception {
         Document document = getDocument("contactbook.xml");
-        List<Long> listID = getListID(document);
 
-        if (!listID.contains(id)) throw new WrongIDFormat();
+        // Получаем корневой элемент
+        Node contactbookNode = document.getFirstChild();
+        NodeList users = contactbookNode.getChildNodes();
 
-        NodeList languages = document.getElementsByTagName("contactbook");
-        Element lang;
-        // проходим по каждому элементу Contact
-        for(int i=0; i<languages.getLength();i++) {
-            lang = (Element) languages.item(i);
-            Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
-            long idL = Long.parseLong(nameID.getTextContent());
+        for (int i = 0; i < users.getLength(); i++) {
+            Node nextNode = users.item(i);
 
-            if (idL == id) {
-                Node group = lang.getElementsByTagName("group").item(0).getFirstChild();
-                group.setNodeValue(" ");
+            if (nextNode.getNodeName().equals("user")) {
+                Element userElement = (Element) nextNode;
+                Node ID = userElement.getElementsByTagName("id").item(0);
+                long idUser = Long.parseLong(ID.getTextContent());
+
+                if (idUser == id) {
+                    Node group = userElement.getElementsByTagName("group").item(0).getFirstChild();;
+                    System.out.println(group);
+                    group.setNodeValue(" ");
+                }
             }
         }
         writeDocument(document);
@@ -272,7 +307,7 @@ public class ContactDAOdom implements DAO<User> {
 
     @Override
     public void setObserver(Observer o) {
-
+        this.addObserver(o);
     }
 
     @Override

@@ -21,7 +21,7 @@ public class View implements Observer {
 
     public void selectParser() {
         try {
-            ConsoleHelper.writeMessage("С какой реализацией xml-парсера работаем: DATA, DOM, SAX, MAP");
+            ConsoleHelper.writeMessage("Выберите реализацию xml-парсера: DATA, DOM, SAX, MAP");
             String result = ConsoleHelper.readString();
             FactoryDAO.setDAO(result);
             ConsoleHelper.writeMessage("выбран " + result);
@@ -32,7 +32,7 @@ public class View implements Observer {
 
     public void select() {
         try {
-        while (true) {
+            while (true) {
             ConsoleHelper.initMenu();
             update("Выберите команду:");
 
@@ -169,10 +169,21 @@ public class View implements Observer {
                     case SHOWGROUPS: {
                         update("Просмотр всех групп...");
                         controller.showAllGroups();
+                        break;
+                    }
+                    case SAVE: {
+                        update("Сохраниение списка контактов...");
+                        controller.save();
+                        break;
+                    }
+                    case LOAD: {
+                        update("Загрузка списка контактов...");
+                        controller.load();
+                        break;
                     }
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             update(e.getMessage());
         }
     }

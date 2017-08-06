@@ -25,14 +25,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Observer;
+import java.util.*;
 
 /**
  * Created by Кодома on 29.07.2017.
  */
-public class GroupDAOdom implements DAO<Group> {
+public class GroupDAOdom extends Observable implements DAO<Group> {
     public static GroupDAOdom instance;
 
     private GroupDAOdom() {
@@ -108,6 +106,8 @@ public class GroupDAOdom implements DAO<Group> {
             }
         }
         writeDocument(document);
+        setChanged();
+        notifyObservers("Группа " + newName + " отредактирована.");
     }
 
     @Override
@@ -122,7 +122,7 @@ public class GroupDAOdom implements DAO<Group> {
         NodeList languages = document.getElementsByTagName("user");
         Element lang;
 
-        for(int i=0; i<languages.getLength();i++) {
+        for(int i = 0; i < languages.getLength(); i++) {
             lang = (Element) languages.item(i);
             Node nameGroup = lang.getElementsByTagName("group").item(0).getFirstChild();
 
@@ -132,10 +132,12 @@ public class GroupDAOdom implements DAO<Group> {
             }
         }
         writeDocument(document);
+        setChanged();
+        notifyObservers("Группа " + group.getNameGroup() + "удалена.");
     }
 
     @Override
-    public void show(Group group) throws Exception {
+    public void show(Group obj) throws Exception {
         Document document = getDocument("contactbook.xml");
 
         XPathFactory pathFactory = XPathFactory.newInstance();
@@ -144,22 +146,36 @@ public class GroupDAOdom implements DAO<Group> {
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
+        Element element;
+
         for (int i = 0; i < nodes.getLength(); i++) {
             Node userNode = nodes.item(i);
             NodeList userList = userNode.getChildNodes();
 
-            Element element = (Element)userList;
+            element = (Element)userList;
 
-            Node g = element.getElementsByTagName("group").item(0).getFirstChild();
+            Node groupNode = element.getElementsByTagName("group").item(0).getFirstChild();
 
-            if (g.getTextContent().equals(group.getNameGroup()))
-                System.out.println("контакт: " + userNode.getTextContent());
+            if (groupNode.getTextContent().equals(obj.getNameGroup())) {
+                String ID = element.getElementsByTagName("id").item(0).getTextContent();
+                String firstName = element.getElementsByTagName("first_name").item(0).getTextContent();
+                String lastName = element.getElementsByTagName("last_name").item(0).getTextContent();
+                String address = element.getElementsByTagName("address").item(0).getTextContent();
+                String phoneNumber = element.getElementsByTagName("phone_number").item(0).getTextContent();
+                String group = element.getElementsByTagName("group").item(0).getTextContent();
+
+                setChanged();
+                String result = String.format("Group: %s [id: %s, name: %s %s, address: %s, phone number: %s]",
+                        group, ID, firstName, lastName, address, phoneNumber);
+                notifyObservers(result);
+            }
         }
     }
 
     @Override
     public void showAll() throws Exception {
         Document document = getDocument("contactbook.xml");
+        HashSet<String> groupsNames = new HashSet<>();
 
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
@@ -172,10 +188,13 @@ public class GroupDAOdom implements DAO<Group> {
             NodeList userList = userNode.getChildNodes();
 
             Element element = (Element)userList;
+            Node group = element.getElementsByTagName("group").item(0).getFirstChild();
+            groupsNames.add(group.getTextContent());
+        }
 
-            Node g = element.getElementsByTagName("group").item(0).getFirstChild();
-
-            System.out.println("группа: " + g.getTextContent());
+        for (String x : groupsNames) {
+            setChanged();
+            notifyObservers(x);
         }
     }
 
@@ -191,7 +210,7 @@ public class GroupDAOdom implements DAO<Group> {
 
     @Override
     public void setObserver(Observer o) {
-
+        addObserver(o);
     }
 
     @Override

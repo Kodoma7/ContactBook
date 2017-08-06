@@ -99,7 +99,7 @@ public class GroupDAO extends Observable implements DAO<Group> {
         for (Group group : data.getGroups()) {
             if (group.getNameGroup().equals(group.getNameGroup())) {
                 setChanged();
-                notifyObservers(group);
+                notifyObservers(group.toString());
             }
         }
     }

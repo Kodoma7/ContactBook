@@ -7,8 +7,10 @@ import main.com.kodoma.datasource.User;
 import main.com.kodoma.exceptions.WrongGroupName;
 import main.com.kodoma.exceptions.WrongIDFormat;
 import main.com.kodoma.services.GroupService;
+import main.com.kodoma.services.SaveService;
 import main.com.kodoma.services.UserService;
 
+import java.io.IOException;
 import java.util.Observer;
 
 /**
@@ -17,6 +19,7 @@ import java.util.Observer;
 public class Controller {
     private UserService userService = UserService.getInstance();
     private GroupService groupService = GroupService.getInstance();
+    private SaveService saveService = SaveService.getInstance();
 
     /**
      * <p>Добавление пользователя</p>
@@ -122,6 +125,7 @@ public class Controller {
     public void setObserver(Observer o) {
         userService.setObserver(o);
         groupService.setObserver(o);
+        saveService.setObserver(o);
     }
 
     /**
@@ -132,5 +136,14 @@ public class Controller {
     public void setData(Data data) {
         userService.setData(data);
         groupService.setData(data);
+        saveService.setData(data);
+    }
+
+    public void save() throws IOException {
+        saveService.save();
+    }
+
+    public void load() throws IOException, ClassNotFoundException {
+        saveService.load();
     }
 }

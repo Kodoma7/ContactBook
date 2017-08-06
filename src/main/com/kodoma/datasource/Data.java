@@ -4,6 +4,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import main.com.kodoma.exceptions.BoundException;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,10 +14,10 @@ import java.util.Map;
  * Created by Кодома on 26.07.2017.
  */
 @JacksonXmlRootElement(localName = "contactbook")
-public class Data {
+public class Data implements Serializable {
     private long id = 0;
     @JacksonXmlElementWrapper(localName = "user", useWrapping = false)
-    private List<User> user = new ArrayList<>();
+    transient private List<User> user = new ArrayList<>();
     private Map<Long, User> users = new HashMap<Long, User>();
     private List<Group> groups = new ArrayList<Group>();
 
@@ -34,30 +35,6 @@ public class Data {
      * @return id
      * @throws BoundException
      */
-    public long getAvalableId() throws BoundException {
-        if (id < Long.MAX_VALUE && !users.containsKey(id))
-            return id++;
-        else if (id < Long.MAX_VALUE)
-            return getFreeId();
-        else throw new BoundException();
-    }
-
-    /**
-     * <p>Ищет и получает номер id из доступных</p>
-     * @return id
-     */
-    private long getFreeId() {
-        long nextId;
-        long result = id;
-        for (long id : users.keySet()) {
-            nextId = id;
-            if (!users.containsKey(++nextId)) {
-                result = nextId;
-                break;
-            }
-        }
-        return result;
-    }
 
     public List<User> getUser() {
         return user;
@@ -69,6 +46,14 @@ public class Data {
 
     public Map<Long, User> getUsers() {
         return users;
+    }
+
+    public void setUsers(Map<Long, User> users) {
+        this.users = users;
+    }
+
+    public void setGroups(List<Group> groups) {
+        this.groups = groups;
     }
 
     public List<Group> getGroups() {

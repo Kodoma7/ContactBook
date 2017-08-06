@@ -4,11 +4,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.io.Serializable;
+
 /**
  * Created by Кодома on 26.07.2017.
  */
 
-public class User {
+public class User implements Serializable {
     @JacksonXmlProperty(localName = "id")
     private long id;
     @JacksonXmlProperty(localName = "first_name")

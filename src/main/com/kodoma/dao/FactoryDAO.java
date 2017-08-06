@@ -2,6 +2,7 @@ package main.com.kodoma.dao;
 
 import main.com.kodoma.dao.daoDATA.ContactDAO;
 import main.com.kodoma.dao.daoDATA.GroupDAO;
+import main.com.kodoma.dao.daoDATA.SaveDAO;
 import main.com.kodoma.dao.daoDOM.ContactDAOdom;
 import main.com.kodoma.dao.daoDOM.GroupDAOdom;
 import main.com.kodoma.dao.daoMAP.ContactDAOmap;
@@ -10,6 +11,8 @@ import main.com.kodoma.dao.daoSAX.ContactDAOsax;
 import main.com.kodoma.dao.daoSAX.GroupDAOsax;
 import main.com.kodoma.datasource.Group;
 import main.com.kodoma.datasource.User;
+
+import static main.com.kodoma.commands.Commands.SAVE;
 
 /**
  * Created by Кодома on 26.07.2017.

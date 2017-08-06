@@ -26,33 +26,62 @@ public class ContactDAO extends Observable implements DAO<User> {
         return instance;
     }
 
+    public long getAvalableId() throws BoundException {
+        long id = data.getId();
+        if (id < Long.MAX_VALUE && !data.getUsers().containsKey(id))
+            return id++;
+        else if (id < Long.MAX_VALUE)
+            return getFreeId();
+        else throw new BoundException();
+    }
+
+    /**
+     * <p>Ищет и получает номер id из доступных</p>
+     * @return id
+     */
+    private long getFreeId() {
+        long nextId;
+        long result = data.getId();
+        for (long id : data.getUsers().keySet()) {
+            nextId = id;
+            if (!data.getUsers().containsKey(++nextId)) {
+                result = nextId;
+                break;
+            }
+        }
+        return result;
+    }
+
     /**
      * <p>Добавление контакта в map<Long, Contact>,
      * при добавлении генерируется наименьший возможный id.
      * уведомление View об изменении</p>
-     * @param obj Contact
+     * @param user Contact
      * @throws BoundException
      */
 
-    public void add(User obj) throws BoundException {
-        data.getUsers().put(data.getAvalableId(), obj);
+    public void add(User user) throws BoundException {
+        long id = getAvalableId();
+        user.setId(id);
+        data.getUsers().put(id, user);
+
         setChanged();
-        notifyObservers("Пользователь " + obj + " добавлен.");
+        notifyObservers("Пользователь " + user + " добавлен.");
     }
 
     /**
      * <p>Редактирвание контакта, уведомление View об изменении</p>
-     * @param obj Contact
+     * @param user Contact
      * @param str null
      * @throws WrongIDFormat
      */
 
-    public void edit(User obj, String str) throws WrongIDFormat {
-        if (!data.getUsers().containsKey(obj.getId())) throw new WrongIDFormat();
+    public void edit(User user, String str) throws WrongIDFormat {
+        if (!data.getUsers().containsKey(user.getId())) throw new WrongIDFormat();
 
-        data.getUsers().put(data.getId(), obj);
+        data.getUsers().put(user.getId(), user);
         setChanged();
-        notifyObservers("Пользователь " + obj + " изменен.");
+        notifyObservers("Пользователь " + user + " изменен.");
     }
 
     /**
@@ -81,6 +110,7 @@ public class ContactDAO extends Observable implements DAO<User> {
         if (!data.getUsers().containsKey(obj.getId())) throw new WrongIDFormat();
         User user = data.getUsers().get(obj.getId());
 
+        setChanged();
         notifyObservers(user.toString());
     }
 

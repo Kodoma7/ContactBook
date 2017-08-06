@@ -1,12 +1,13 @@
 package main.com.kodoma.datasource;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Кодома on 26.07.2017.
  */
-public class Group {
+public class Group implements Serializable {
     private String nameGroup;
     private List<User> list = new ArrayList<User>();
 
