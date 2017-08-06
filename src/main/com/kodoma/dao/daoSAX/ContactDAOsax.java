@@ -24,12 +24,13 @@ import javax.xml.xpath.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
 import java.util.Observer;
 
 /**
  * Created by Кодома on 29.07.2017.
  */
-public class ContactDAOsax implements DAO<User> {
+public class ContactDAOsax extends Observable implements DAO<User> {
     public static ContactDAOsax instance;
 
     private ContactDAOsax() {
@@ -149,15 +150,24 @@ public class ContactDAOsax implements DAO<User> {
 
         NodeList languages = document.getElementsByTagName("user");
         Element lang;
-
-        for (int i = 0; i < languages.getLength(); i++) {
+        // проходим по каждому элементу User
+        for(int i = 0; i < languages.getLength(); i++) {
             lang = (Element) languages.item(i);
             Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
             long id = Long.parseLong(nameID.getTextContent());
 
             if (id == user.getId()) {
                 Node firstName = lang.getElementsByTagName("first_name").item(0).getFirstChild();
+                Node lastName = lang.getElementsByTagName("last_name").item(0).getFirstChild();
+                Node address = lang.getElementsByTagName("address").item(0).getFirstChild();
+                Node phoneNumber = lang.getElementsByTagName("phone_number").item(0).getFirstChild();
+                Node group = lang.getElementsByTagName("group").item(0).getFirstChild();
+
                 firstName.setNodeValue(user.getFname());
+                lastName.setNodeValue(user.getLname());
+                address.setNodeValue(user.getAddress());
+                phoneNumber.setNodeValue(user.getPhoneNumber() + " ");
+                group.setNodeValue(user.getGroup());
             }
         }
         writeDocument(document);
@@ -166,31 +176,24 @@ public class ContactDAOsax implements DAO<User> {
     @Override
     public void remove(User user) throws Exception {
         Document document = getDocument("contactbook.xml");
-        List<Long> listID = getListID(document);
 
-        if (!listID.contains(user.getId())) throw new WrongIDFormat();
+        // Получаем корневой элемент
+        Node contactbookNode = document.getFirstChild();
+        NodeList users = contactbookNode.getChildNodes();
 
-        XPathFactory pathFactory = XPathFactory.newInstance();
-        XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("contactbook");
+        for (int i = 0; i < users.getLength(); i++) {
+            Node nextNode = users.item(i);
 
-        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+            if (nextNode.getNodeName().equals("user")) {
+                System.out.println(nextNode.getNodeName());
 
-        for (int i = 0; i < nodes.getLength(); i++) {
-            Node userNode = nodes.item(i);
-            NodeList list = nodes.item(i).getChildNodes();
-            Node n = list.item(1);
+                Element userElement = (Element) nextNode;
+                Node ID = userElement.getElementsByTagName("id").item(0);
+                long id = Long.parseLong(ID.getTextContent());
 
-            Element element = (Element) n;
-            Node ID = element.getElementsByTagName("id").item(0);
-
-            System.out.println(ID.getNodeName());
-            System.out.println(ID.getTextContent());
-
-            long id = Long.parseLong(ID.getTextContent());
-
-            if (id == user.getId())
-                userNode.removeChild(n);
+                if (id == user.getId())
+                    contactbookNode.removeChild(nextNode);
+            }
         }
         writeDocument(document);
     }
@@ -205,39 +208,68 @@ public class ContactDAOsax implements DAO<User> {
         if (!listID.contains(user.getId())) throw new WrongIDFormat();
 
         String fileName = "contactbook.xml";
-        StringBuilder sb = new StringBuilder();
+        //StringBuilder result = new StringBuilder();
 
         DefaultHandler handler = new DefaultHandler() {
-            boolean idFound = false;
+            boolean isID = false;
+            boolean isFirstName = false;
+            boolean isLastName = false;
+            boolean isAddress = false;
+            boolean isPhoneNumber = false;
+            boolean isGroup = false;
             boolean record = false;
             int i = 0;
 
             @Override
             public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-                if (qName.equalsIgnoreCase("id")) {
-                    idFound = true;
-                }
+                if (qName.equalsIgnoreCase("id")) isID = true;
+                else if (qName.equalsIgnoreCase("first_name")) isFirstName = true;
+                else if (qName.equalsIgnoreCase("last_name")) isLastName = true;
+                else if (qName.equalsIgnoreCase("address")) isAddress = true;
+                else if (qName.equalsIgnoreCase("phone_number")) isPhoneNumber = true;
+                else if (qName.equalsIgnoreCase("group")) isGroup = true;
             }
 
             @Override
             public void characters(char ch[], int start, int length) throws SAXException {
-                if (record && i < 9) {
-                    sb.append(new String(ch, start, length));
-                    i++;
-                }
+                String result = new String(ch, start, length);
 
-                if (idFound) {
+                if (isID && !record) {
+                    System.out.println("id: " + result);
                     long id = Long.parseLong(new String(ch, start, length));
                     if (id == user.getId()) {
                         record = true;
                     }
-                    idFound = false;
+                    isID = false;
+                }
+
+                if (record && i < 11) {
+                    if (isFirstName) {
+                        System.out.println("first_name: " + result);
+                        isFirstName = false;
+                    }
+                    else if (isLastName) {
+                        System.out.println("last_name: " + result);
+                        isLastName = false;
+                    }
+                    else if (isAddress) {
+                        System.out.println("address: " + result);
+                        isAddress = false;
+                    }
+                    else if (isPhoneNumber) {
+                        System.out.println("phone_number: " + result);
+                        isPhoneNumber = false;
+                    }
+                    else if (isGroup) {
+                        System.out.println("group: " + result + "\n");
+                        isGroup = false;
+                    }
+                    i++;
                 }
             }
         };
 
         saxParser.parse(fileName, handler);
-        System.out.println(sb.toString());
     }
 
     @Override
@@ -299,6 +331,7 @@ public class ContactDAOsax implements DAO<User> {
 
     @Override
     public void searchUser(String name) throws Exception {
+        
 
     }
 
@@ -328,21 +361,24 @@ public class ContactDAOsax implements DAO<User> {
     @Override
     public void deleteLabel(long id) throws Exception {
         Document document = getDocument("contactbook.xml");
-        List<Long> listID = getListID(document);
 
-        if (!listID.contains(id)) throw new WrongIDFormat();
+        // Получаем корневой элемент
+        Node contactbookNode = document.getFirstChild();
+        NodeList users = contactbookNode.getChildNodes();
 
-        NodeList languages = document.getElementsByTagName("user");
-        Element lang;
+        for (int i = 0; i < users.getLength(); i++) {
+            Node nextNode = users.item(i);
 
-        for (int i = 0; i < languages.getLength(); i++) {
-            lang = (Element) languages.item(i);
-            Node nameID = lang.getElementsByTagName("id").item(0).getFirstChild();
-            long idL = Long.parseLong(nameID.getTextContent());
+            if (nextNode.getNodeName().equals("user")) {
+                Element userElement = (Element) nextNode;
+                Node ID = userElement.getElementsByTagName("id").item(0);
+                long idUser = Long.parseLong(ID.getTextContent());
 
-            if (idL == id) {
-                Node group = lang.getElementsByTagName("group").item(0).getFirstChild();
-                group.setNodeValue(" ");
+                if (idUser == id) {
+                    Node group = userElement.getElementsByTagName("group").item(0).getFirstChild();;
+                    System.out.println(group);
+                    group.setNodeValue(" ");
+                }
             }
         }
         writeDocument(document);
@@ -350,7 +386,7 @@ public class ContactDAOsax implements DAO<User> {
 
     @Override
     public void setObserver(Observer o) {
-
+        this.addObserver(o);
     }
 
     @Override

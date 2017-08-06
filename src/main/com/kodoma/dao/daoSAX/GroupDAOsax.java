@@ -25,15 +25,12 @@ import javax.xml.xpath.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Observer;
+import java.util.*;
 
 /**
  * Created by Кодома on 29.07.2017.
  */
-public class GroupDAOsax implements DAO<Group> {
+public class GroupDAOsax extends Observable implements DAO<Group> {
     public static GroupDAOsax instance;
 
     private GroupDAOsax() {
@@ -70,7 +67,6 @@ public class GroupDAOsax implements DAO<Group> {
 
     private Document getDocument(String name) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        // Создается дерево DOM документа из файла
         Document document = documentBuilder.parse(name);
         return document;
     }
@@ -94,17 +90,16 @@ public class GroupDAOsax implements DAO<Group> {
 
     @Override
     public void edit(Group group, String newName) throws Exception {
-        System.out.println("работает GroupDAOdom - edit");
         checkFileExists();
 
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<String> names = getGroupsNames(document);
 
         if (!names.contains(group.getNameGroup())) throw new WrongGroupName();
 
         XPathFactory pathFactory = XPathFactory.newInstance();
         XPath xpath = pathFactory.newXPath();
-        XPathExpression expr = xpath.compile("ContactBook/User/Group");
+        XPathExpression expr = xpath.compile("contactbook/user/group");
 
         NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
@@ -115,31 +110,34 @@ public class GroupDAOsax implements DAO<Group> {
             }
         }
         writeDocument(document);
+        setChanged();
+        notifyObservers("Группа " + newName + " отредактирована.");
     }
 
     @Override
     public void remove(Group group) throws Exception {
-        System.out.println("работает GroupDAOsax - remove");
         checkFileExists();
 
-        Document document = getDocument("ContactBook.xml");
+        Document document = getDocument("contactbook.xml");
         List<String> names = getGroupsNames(document);
 
         if (!names.contains(group.getNameGroup())) throw new WrongGroupName();
 
-        NodeList languages = document.getElementsByTagName("User");
+        NodeList languages = document.getElementsByTagName("user");
         Element lang;
 
-        for (int i = 0; i < languages.getLength(); i++) {
+        for(int i = 0; i < languages.getLength(); i++) {
             lang = (Element) languages.item(i);
-            Node nameGroup = lang.getElementsByTagName("Group").item(0).getFirstChild();
+            Node nameGroup = lang.getElementsByTagName("group").item(0).getFirstChild();
 
             if (nameGroup.getTextContent().equals(group.getNameGroup())) {
-                Node g = lang.getElementsByTagName("Group").item(0).getFirstChild();
+                Node g = lang.getElementsByTagName("group").item(0).getFirstChild();
                 g.setNodeValue(" ");
             }
         }
         writeDocument(document);
+        setChanged();
+        notifyObservers("Группа " + group.getNameGroup() + "удалена.");
     }
 
     @Override
@@ -201,7 +199,6 @@ public class GroupDAOsax implements DAO<Group> {
             }
         };
 
-        // Стартуем разбор методом parse, которому передаем наследника от DefaultHandler, который будет вызываться в нужные моменты
         saxParser.parse(fileName, handler);
     }
 
@@ -217,13 +214,11 @@ public class GroupDAOsax implements DAO<Group> {
         DefaultHandler handler = new DefaultHandler() {
             boolean isGroup = false;
 
-            // Метод вызывается когда SAXParser "натыкается" на начало тэга
             @Override
             public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
                 if (qName.equalsIgnoreCase("Group")) isGroup = true;
             }
 
-            // Метод вызывается когда SAXParser считывает текст между тэгами
             @Override
             public void characters(char ch[], int start, int length) throws SAXException {
                 String result = new String(ch, start, length);
@@ -235,7 +230,6 @@ public class GroupDAOsax implements DAO<Group> {
             }
         };
 
-        // Стартуем разбор методом parse, которому передаем наследника от DefaultHandler, который будет вызываться в нужные моменты
         saxParser.parse(fileName, handler);
         System.out.println(groupNames);
     }

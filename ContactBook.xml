@@ -1,19 +1,18 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<contactbook>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><contactbook>
 <user>
     <id>0</id>
-    <first_name>FF</first_name>
-    <last_name>af</last_name>
-    <address>12</address>
-    <phone_number>321</phone_number>
-    <group>V</group>
+    <first_name>g</first_name>
+    <last_name>g</last_name>
+    <address>g</address>
+    <phone_number>7 </phone_number>
+    <group>A</group>
 </user>
     <user>
         <id>1</id>
-        <first_name>l</first_name>
-        <last_name>k</last_name>
-        <address>h</address>
-        <phone_number>1</phone_number>
+        <first_name>o</first_name>
+        <last_name>o</last_name>
+        <address>o</address>
+        <phone_number>5 </phone_number>
         <group> </group>
     </user>
     <user>
@@ -22,6 +21,6 @@
         <last_name>m</last_name>
         <address>m</address>
         <phone_number>5</phone_number>
-        <group> </group>
+        <group>A</group>
     </user>
 </contactbook>
