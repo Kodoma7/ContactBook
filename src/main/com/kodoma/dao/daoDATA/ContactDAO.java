@@ -125,6 +125,11 @@ public class ContactDAO extends Observable implements DAO<User> {
         }
     }
 
+    @Override
+    public void searchUser(String name) throws Exception {
+
+    }
+
     /**
      * <p>Занести контакт в группу, Group - класс, в котором: ArrayList<Contact> имеет поле типа String
      * для хранения информации о названии группы</p>

@@ -77,6 +77,11 @@ public class UserService implements Service<User> {
         contactDAO.showAll();
     }
 
+    public void searchUserByName(String name) throws Exception {
+        contactDAO = FactoryDAO.getDAO(User.class);
+        contactDAO.searchUser(name);
+    }
+
     /**
      * <p>Занести контакт в группу</p>
      * @param id Контакта

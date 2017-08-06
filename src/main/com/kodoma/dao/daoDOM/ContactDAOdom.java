@@ -4,6 +4,7 @@ import main.com.kodoma.dao.DAO;
 import main.com.kodoma.datasource.Data;
 import main.com.kodoma.datasource.User;
 import main.com.kodoma.exceptions.BoundException;
+import main.com.kodoma.exceptions.WrongContactName;
 import main.com.kodoma.exceptions.WrongIDFormat;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
@@ -84,6 +85,22 @@ public class ContactDAOdom extends Observable implements DAO<User> {
             idList.add(id);
         }
         return idList;
+    }
+
+    private List<String> getListNames(Document document) throws XPathExpressionException {
+        XPathFactory pathFactory = XPathFactory.newInstance();
+        XPath xpath = pathFactory.newXPath();
+        XPathExpression expr = xpath.compile("contactbook/user/first_name");
+
+        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+
+        List<String> namesList = new ArrayList<>();
+
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node n = nodes.item(i);
+            namesList.add(n.getTextContent());
+        }
+        return namesList;
     }
 
     private Document getDocument(String name) throws ParserConfigurationException, IOException, SAXException {
@@ -253,6 +270,39 @@ public class ContactDAOdom extends Observable implements DAO<User> {
             String result = String.format("Group: %s [id: %s, name: %s %s, address: %s, phone number: %s]",
                     group, ID, firstName, lastName, address, phoneNumber);
             notifyObservers(result);
+        }
+    }
+
+    @Override
+    public void searchUser(String name) throws Exception {
+        Document document = getDocument("contactbook.xml");
+        if (!getListNames(document).contains(name)) throw new WrongContactName();
+
+        XPathFactory pathFactory = XPathFactory.newInstance();
+        XPath xpath = pathFactory.newXPath();
+        XPathExpression expr = xpath.compile("contactbook/user");
+
+        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+        Element element;
+
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node userNode = nodes.item(i);
+
+            element = (Element) userNode;
+            String firstName = element.getElementsByTagName("first_name").item(0).getTextContent();
+
+            if (firstName.equals(name)) {
+                String ID = element.getElementsByTagName("id").item(0).getTextContent();
+                String lastName = element.getElementsByTagName("last_name").item(0).getTextContent();
+                String address = element.getElementsByTagName("address").item(0).getTextContent();
+                String phoneNumber = element.getElementsByTagName("phone_number").item(0).getTextContent();
+                String group = element.getElementsByTagName("group").item(0).getTextContent();
+
+                setChanged();
+                String result = String.format("Group: %s [id: %s, name: %s %s, address: %s, phone number: %s]",
+                        group, ID, firstName, lastName, address, phoneNumber);
+                notifyObservers(result);
+            }
         }
     }
 

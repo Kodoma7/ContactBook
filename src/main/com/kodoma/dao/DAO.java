@@ -46,6 +46,11 @@ public interface DAO<T> {
     void showAll() throws Exception;
 
     /**
+     * <p>Поиск контакта по имени</p>
+     * @param name
+     */
+    void searchUser(String name) throws Exception;
+    /**
      * <p>Занести контакт в группу</p>
      * @param id Контакта
      * @param nameOfGroup Имя группы

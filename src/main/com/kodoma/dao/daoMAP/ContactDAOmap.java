@@ -236,6 +236,11 @@ public class ContactDAOmap extends Observable implements DAO<User> {
     }
 
     @Override
+    public void searchUser(String name) throws Exception {
+
+    }
+
+    @Override
     public void label(long id, String nameOfGroup) throws Exception {
         Document document = getDocument("contactbook.xml");
         List<Long> listID = getListID(document);

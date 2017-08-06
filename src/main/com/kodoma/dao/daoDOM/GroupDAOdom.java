@@ -199,6 +199,11 @@ public class GroupDAOdom extends Observable implements DAO<Group> {
     }
 
     @Override
+    public void searchUser(String name) throws Exception {
+
+    }
+
+    @Override
     public void label(long id, String nameOfGroup) throws WrongIDFormat {
 
     }

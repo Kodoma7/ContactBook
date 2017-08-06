@@ -119,6 +119,14 @@ public class View implements Observer {
                         controller.showAll();
                         break;
                     }
+                    case SHOWUSERBYID: {
+                        update(Messages.SHOWCONTACTBYNAME);
+                        update(Messages.ENTERFIRSTNAME);
+                        String name = ConsoleHelper.readString();
+
+                        controller.searchUserByName(name);
+                        break;
+                    }
                     case LABELUSER: {
                         update(Messages.LABELCONTACT);
                         update(Messages.ENTERID);

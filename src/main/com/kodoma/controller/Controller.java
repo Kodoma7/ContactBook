@@ -63,6 +63,10 @@ public class Controller {
         userService.showAll();
     }
 
+    public void searchUserByName(String name) throws Exception {
+        userService.searchUserByName(name);
+    }
+
     /**
      * <p>Занести контакт в группу</p>
      * @param id Контакта
