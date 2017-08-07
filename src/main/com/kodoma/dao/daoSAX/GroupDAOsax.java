@@ -224,7 +224,8 @@ public class GroupDAOsax extends Observable implements DAO<Group> {
                 String result = new String(ch, start, length);
 
                 if (isGroup) {
-                    groupNames.add(result);
+                    String str = result.trim();
+                    if (!str.isEmpty()) groupNames.add(str);
                     isGroup = false;
                 }
             }
